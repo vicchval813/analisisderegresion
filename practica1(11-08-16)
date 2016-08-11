@@ -1,0 +1,20 @@
+sample(10000,35)#funcion que te arroga muestra aleatrorias, 10000 es poblacion y 35 es el tamaño de la muestra
+###vamos a crear una base de datos
+##4 variables:nombre, edad, sexo, tipo de educacion
+nombres<-c("sergio","alan","betzabeth","judith","rodrigo","eric","diego","angel")
+edad<-c(36,20,23,20,21,21,22,21)
+sexo<-c("hombre","hombre","mujer","mujer","hombre","hombre","hombre","hombre")
+teduca<-c("publica","publica","publica","publica","privada","publica","publica","publica")
+#generaremos una base en forma de matriz
+base1<-matrix(c(edad,nombres,sexo,teduca))
+#3 crearemos base con data frame
+base1.1<-data.frame(nombres,edad,sexo,teduca)
+#vamos a utilizar a funcion table
+#la funcion table se utiliza para conocer
+#la frecuencia de las diferentes variables
+table(base1.1$edad)
+table(base1.1$sexo)
+attach(base1.1)#esta funcion hace q apartir de aqui solo se utilice lña base1.1..apartir de aqui solo se nombra
+table(edad)
+detach(base1.1)#apartir de aqui deja de utilizarle esta base1.1 y se empieza a trabajar normal
+summary(base1.1$edad)
