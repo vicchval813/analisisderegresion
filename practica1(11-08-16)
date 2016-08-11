@@ -18,3 +18,9 @@ attach(base1.1)#esta funcion hace q apartir de aqui solo se utilice lña base1.1
 table(edad)
 detach(base1.1)#apartir de aqui deja de utilizarle esta base1.1 y se empieza a trabajar normal
 summary(base1.1$edad)
+#importar base de datos
+#para importar base de datos se utiliza el paquete foreign
+install.packages("foreign")
+require(foreign)
+sociodem<-read.dbf("C://Users//SALA-C19.RTIC-C19-HP//Downloads//rgresionvik//SDEMT215.dbf")#se deben cambiar las \ por // y despues de la ubicacion del archivo que aparece en propiedades del archivo se abre // y se coloca el nobre del archivo que esta en propiedades tambien
+table(sociodem$SEX)
