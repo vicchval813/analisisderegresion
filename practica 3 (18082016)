@@ -1,0 +1,49 @@
+setwd("C://Users//SALA-C27//Documents")
+require(foreign)
+SDEMT215<-data.frame(read.dbf("SDEMT215.dbf")) 
+##Recodificar
+##4.1 Recodificar de variables numericas (rangos)
+#metodo
+SDEMT215$EDAD11[as.numeric(SDEMT215$EDA)>=0&as.numeric(SDEMT215$EDA)<=10]<-1
+SDEMT215$EDAD11[as.numeric(SDEMT215$EDA)>=11&as.numeric(SDEMT215$EDA)<=20]<-2
+SDEMT215$EDAD11[as.numeric(SDEMT215$EDA)>=21&as.numeric(SDEMT215$EDA)<=30]<-3
+SDEMT215$EDAD11[as.numeric(SDEMT215$EDA)>=31&as.numeric(SDEMT215$EDA)<=40]<-4
+SDEMT215$EDAD11[as.numeric(SDEMT215$EDA)>=41]<-5 #as.numeric es para cambiar de caracter a numerica
+ls(SDEMT215)##lista de variables
+table(SDEMT215$EDAD11)
+class(SDEMT215$ENT)
+as.character(as.numeric(SDEMT215$ENT))
+class(SDEMT215$ENT)
+SDEMT215$ENT<-(as.character(as.numeric(SDEMT215$ENT)))
+
+#Metodo
+SDEMT215$EDAD111<-ifelse(as.numeric(SDEMT215$EDA)>=0&as.numeric(SDEMT215$EDA)<=10,1,
+                         ifelse(as.numeric(SDEMT215$EDA)>=11&as.numeric(SDEMT215$EDA)<=20,2,
+                                ifelse(as.numeric(SDEMT215$EDA)>=21&as.numeric(SDEMT215$EDA)<=30,3,
+                                       ifelse(as.numeric(SDEMT215$EDA)>=31&as.numeric(SDEMT215$EDA)<=40,4,5))))
+table(SDEMT215$EDAD111)
+
+#4.1 Recodificaion de variables tipo caracter
+install.packages("questionr")
+require(questionr)
+class(SDEMT215$R_DEF)
+SDEMT215$VALIDO[as.character(SDEMT215$R_DEF)!="00"]<-"ENTREVISTA INCOMPLETA"    #SDEMT215$VALIDO, DENTRO DE LA BASE DE DATOS ESTA CREANDO UNA NUEVA VARIABLE LLAMADO VALIDO
+SDEMT215$VALIDO[as.character(SDEMT215$R_DEF)=="00"]<-"ENTREVISTA COMPLETA"
+wtd.table(SDEMT215$VALIDO)
+
+
+#####################################################################
+#5. subconjunto de datos
+#5.1 seleccionando variables de interes
+#Metodo 1
+var<-c("R_DEF","LOC","MUN","C_RES")
+newdatal<-SDEMT215[,var]#crea base de datos basado en la base de datos SDEMT215, colocando en la columna solo var, en la cual var que es el vector creado, mostrara sus variables en la columna. se puede hacer lo mismo si se desea modificar el renglon..[renglon,columna]
+##seleccionar casos u observaciones
+##funcion...subset()
+help(subset)
+
+mujer<-subset(SDEMT215,SDEMT215$SEX==2)
+table(mujer$SEX)
+mujer$CD_A<-as.character(mujer$CD_A)
+mujer1<-subset(mujer,mujer$CD_A=="02" | mujer$CD_A=="16")
+table(mujer1$CD_A)
