@@ -1,0 +1,31 @@
+summary(modl)$coefficients
+#se tiene un ajuste
+esta=.9323+.0023eco
+#los valores de p-value son inferiores a .05 por lo que ...
+#1)relacion lineal entre la var dependiente y la independiente-----> relacion positiva
+#interpretacion:por cada peso de ingreso que aumente el padre o madre, aumenta la estatura en .0023
+#el erro estandar residual es .0198 este valor es muy importante ya que permite medir la calidad del modelo
+summary(modl)
+#con este error generamos los intervalos de confianza
+#los IC nos permiten complementar la informacion sobre las estimaciones 
+
+#para calcular IC se utiliza 
+confint(modl,level = .95)
+#interpretacion: con una probabilidad de 95% Bo se encuentra en el intervalo (.8542,1.0105) y B1 se encuentra en el intervalo (.0017,.0029)
+
+#BONDAD DE AJUSTE: verificamos la calidad del modelo al interpretar la variable independiente para eso se utiliza la tabla ANOVA 
+anova(modl)
+# en este caso la variabilidad explicada del modelo es .033022= SSM
+#se reviza la SSR=.0031 
+#revizando los valores del summary el estadistico F es mayor a 1 y p-value menos a .05
+#con estas reviciones se puede mencionar que se rechaza la Ho de F=1
+# y se puede establecer un modelo 
+
+##revisar r al cuadrado
+#al rededor del 91% de la variabilidad de la estura es explicada por la recta ajustada 
+
+#######################supuestos#############################
+base1<-data.frame(eco,esta)
+base1$fitted.modl<-fitted(modl)
+base1$residuals.modl<-residuals(modl)
+base1$rstudent.modl<-rstudent(modl)
