@@ -1,0 +1,16 @@
+install.packages("XLConnect")
+require (XLConnect)
+wb<-loadworkbook("C://Users//SALA-C10//Documents//practica", create=TRUE)#se guarda en el libro "wb" y la hoja se llama sexo
+createSheet (wb, name= "SEXO")
+writeWorksheet (wb,tabla1, "SEXO",startRow=1, startCol=2, hearder = TRUE) #COMIENZA EN EL CUADRO 1 TABLA 2  #HEARDER ES PARA VER SI TIENEN NOMBRE O NO
+createSheet (wb, name= "COND. DE OCUP")
+writeWorksheet (wb,tabla2, "COND. DE OCUP",startRow=1, startCol=2, hearder = TRUE)
+
+
+require (foreign)
+sdemt<- read.dbf("C://Users//SALA-C10//Downloads//SDEMT215.dbf")
+
+install.packages("questionr")
+require (questior)
+entidad <- subset (SDEMT215, SDEMT215$ENT==16 | SDEMT215$ENT==26)
+table(entidad$ENT)
