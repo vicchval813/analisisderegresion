@@ -1,0 +1,15 @@
+install.packages("foreing")
+require(foreign)
+install.packages("questionr")
+require(questionr)
+basegral<-read.dbf("C://Users//SALA-C26//Downloads//sdemt216.dbf")
+table(basegral$ENT)
+bcs<-subset(basegral,basegral$ENT=="03")
+
+#Diagrama de dispersión
+
+bcs$POS_OCU<-(as.character(as.numeric(bcs$POS_OCU)))
+empleados<-c(bcs$POS_OCU=="2")
+bcs$EDA<-(as.character(as.numeric(bcs$EDA)))
+edad<-c(bcs$EDA)
+plot(edad, empleados, pch=11,xlab="edad", ylab="empleados", main="diagrama de dispersión", col="blue")
