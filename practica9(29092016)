@@ -1,0 +1,40 @@
+capa<-c(4330,5500,5500,4700,5200,5500,4700,5500,5800,5000) #independiente (x2)
+calidad<-c(2,3,4,3,4,4,4,5,5,5)#independiente(x1)
+precio<-c(190,219,249,249,250,340,289,395,439,525)#dependiente(y)
+mochil<-data.frame(precio,capa,calidad)
+#para eliminar columnas de la matriz data.frame
+mochil1<-mochil[c(-1,-7,-10),]#aqui esta eliminando las filas 1,7,10 y las columnas los deja igual
+
+##primero aplicamos una correlacion
+cor(mochil1,use="everything", method = "pearson")
+#observamos que las variables tienen correlaciones diversas, aplicamos
+modmo<-lm(precio~calidad+capa)
+summary(modmo)
+#se revisa la R2 ajustada por ser un mRM tenemos 
+#r2 ajustada de .70 lo que implica que la recta de regresion 
+#explica en 70% la variabilidad del modelo
+#revisemos el valor F y p value tenemos que si cumple con
+# los criterios de un buen ajuste (f>1 y P value <.5)
+#con estos datos podemos mensionar que estamos 
+#ante un buen modelo por lo que se pasa al diagnostico
+#el diagnostico se realiza para poder generalizar los resultados del modelo a partir de la revision de los supuestos
+#lo primero que se hace en un mrm es observar graficamente los supuestos 
+#en primer lugar se constrastan los valores 
+#residuales contra los valores ajustados
+#se realiza con la funcion plot y el argumento wich=1
+#recuerden que le pch cambia la figura de las observaciones
+plot(modmo,wich=1,pch=3)
+#aqui esperamos que los residuos se distribuyan sin patron
+#una tendencia en la variabilidad de los residuos sugiere
+#que la varianza esta relacionada con la media, violando el 
+#supuesto de varianza constante
+plot(modmo,wich=2,pch=3)
+#en este caso esperamos que los residuos tipificados alrededor de la linea se observa que si hay distribucion normal
+
+###tercer supuesto##
+#los residuos estan estandarizados por sus desviaciones estandar estimadas
+plot(modmo,which=3,pch=3)
+#aqui podemos ver si los residuos se distribuyen constantes
+#en los valores ajustados
+#una grafica sin patron observable
+#cuarto supuesto#
