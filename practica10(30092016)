@@ -1,0 +1,79 @@
+#despues de que analizamos graficamente
+#se aplican pruebas para comprobar 
+#que el mrm si cumple con los supuestos 
+#para aplicar estas pruebas se generan los 
+#valores ajustados, residuales y los estandarizados
+mochil$ajustados<-fitted(modmo)#obtiene los valores ajustados de cierto modelo
+mochil$res<-residuals(modmo)
+mochil$rstud<-rstudent(modmo)#para generar mis x estandarizados (para los errores)
+###prueba de normalidad
+#paqueteria lmtest
+install.packages("lmtest")
+require(lmtest)
+ks.test(mochil$rstud,"pnorm")##para la prueba de normalidad
+#se plantea una prueba de hipotesis
+#y se espera un p value mayor a .05
+#si tenemos un p value mayor a .05
+#no se rechaza la Ho y se acepta que hay normalidad
+#en este caso el modelo pasa la prueba de normalidad
+#a segunda prueba que se hace es
+#la homogeneidad de varianzas y esta prueba se realiza 
+#con la funcion bptest
+bptest(modmo,studentize = FALSE,data = mochil)#1 er argumentp es el modelo de la prueba, el 2do argumento es studentize 
+#es para que no tome los errores que estan en el modelo, 
+#3 er argumento es base de datos 
+#tenemos un p value mayor a .05
+#por lo tanto pasa la prueba de homogeneidad
+#varianzas
+###la tercer prueba es de autocorrelacion
+### esta prueba se llama de durbin watson
+#la funcion para esta prueba es dwtest()
+dwtest(modmo,alternative="two.sided",data=mochil)
+#en esta bprueba hay dos formas para comprobar 
+#1) en p vcalue mayor a .05
+#2)el valor de durbin watson (rango aceptable 1.5 a 2.5)
+#esto quiere decir que hay independencia entre los erores
+#hasta aqui podriamos confirmar que no hay correlacion
+#entre los residuos
+#con estas preubas ya se confirma que tenemos un modelo
+#con un buen ajuste. sin embargo hay que revisar los casos atipicos
+#para revisar los atipicos se usa la libreria car
+install.packages("car")
+require("car")
+outlierTest(modmo)# muestra cuales son los valores posibles atipicos en el modelo
+outlier.test(modmo)
+#una vez que observamos los casos atipicos
+#procedemos a conocer la influebcia de estos casos
+#en el modelo para observar a influencia se utiliza
+#la funcion influence.measures()
+influ<-influence.measures(modmo)
+summary(influ)
+#en la primera columna se observa los casos
+#con mas influyentes que en este modelo son 1,2 y 10
+#las columnas que hacen referencia a dfb nos indican 
+#la influencia en los coefiecientes del modelo 
+#las columnas que nos presentan mayor interes son las 
+#cook.d y hat que nos exponen con mayor calridad la 
+#influencia el cook.d es la distancia de cook
+# y entre mas cercano a 1 hay mayor influencia de 
+#la observacion en este caso a obs 10 es a que tiene
+#mayor distancia de cook, en esta distancia valores
+#mayores a 1 hay certeza de que si influyen 
+#en la columna de hat se asocia con las medidas de 
+#leverage que varian entre 0 y 1 entre mas cercano a 1 mayor 
+#influencia 
+#ademas de estas pruebas se hace un analisi grafico de los
+#casos influyentes para este analisis tenemos la 
+#funcion influencepot()...se requiere la libreria car
+influencepot(modmo)
+#el analisis de este grafico se realiza con base en 
+#el tamaño de las circunstancias que arroja
+#es decir a mayor circunferencia, el caso tiene mayor
+#influencia
+#grafica de distancia de cooks.distance se requiere de la 
+#libreria faraway
+install.packages("faraway")
+require(faraway)
+dc<-cooks.distance(modmo)
+etiqueta<-rownames(mochil)
+halfnorm(dc,3,etiqueta)
