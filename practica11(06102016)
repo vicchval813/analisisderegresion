@@ -1,0 +1,106 @@
+capa<-c(4330,5500,5500,4700,5200,5500,4700,5500,5800,5000) #independiente (x2)
+calidad<-c(2,3,4,3,4,4,4,5,5,5)#independiente(x1)
+precio<-c(190,219,249,249,250,340,289,395,439,525)#dependiente(y)
+plot(capa,precio,pch=12, xlab = "capa",ylab="precio",main = "grafica de dispersion",col="blue")
+cor(precio,calidad,method = "pearson")
+cor.test(precio,capa,method = "pearson")
+#comparacion de modelos
+#pretendemos seleccionar el mejor subconjunto de var independiente
+#en este caso para la aplicacion de mrm tenemos 2 variables 
+#independientes (calidad y capacidad)por lo que se propone 
+#comparar 3 modelos con la finalidad de aplicar el principio de parsimonia
+#conocer varaibles independientes innecesarias
+#evitar multicolinealidad, es decir, que se tienen muchas variables
+#intentando explicar el modelo 
+##ante estas variables se pueden comparar tres modelos
+#1) precio~capacidad
+#2)precio~calidad
+#3)precio~calidad + capacidad
+########¿como seleccionamos el mejor modelo?
+#criterio de informacion akaike (AIC)
+#el problema de utilizar R cuadrada para comparar modelos es que al introducir
+#nuevas variables al modelo, esta medida crece
+#si estamos decidiendo cual de todos 
+
+#por tener mas variables. viene definido por
+#AIC=(n)(log(SCR/n))+2k
+#SCR=suma de cuadrados residuales
+#n es el numero de casos en el modelo
+#SCR= suma suma de cuadrados de los residuos de modelo
+#k numero de variables independientes
+##el problema es que el punto de criterio para el AIC es mayor el modelo es peor
+##el metodo mas recomendado es el metodo de step bystep
+##para r se utiliza la funcion  step()
+##dentro del metodo  de step by step hay 3 modalidades
+#1) forward...parte del coeficiente Bo y de ahi va probandolas variables
+#indep para ver cual es el que aporta al modelo
+#2)blackward...R empieza con todas la var indep y estudia el AIC
+#baja cuando hay cambios de variuables 
+#3) both..empieza como el forward la diferencia es que se realizan test para conocer 
+#el valor indep menos util
+
+
+#el metodo mas recomendable es el backward porque tienen un efecto represor que permite
+#probar cuando una var tiene influencia solon si otra var se mantiene constante 
+#vamos a calcular el modelo con las 2 var indep
+moch<-data.frame(precio,capa,calidad)
+cor(moch,use="everything",method = "pearson")
+mod1<-lm(precio~capa+calidad,data=moch)
+summary(mod1)
+step(mod1,direction ="backward")
+#aqui podemos ver que el metodo step analizo 2 modelos
+#1)precio~capa+calidad con un AIC=83.90
+#2)precio~calidad con un AIC=83.51
+
+##ahora con el metodo de both
+step(mod1,direction = "both")
+##tenemos un resultado igual al de forward por la forma que se construye este metodo 
+#ahora con el metodo de forward
+step(mod1,direction = "forward")
+##en este solo muesra el modelo completo por que inicia haciendo pruebas con el
+#modelo nulo y solo deja el modelo comp´leto por que es el que mayor AIC muestra...
+##en este caso nos quedamos con el mejor modelo AIC que es el de modelo precio~calidad...
+
+
+
+
+
+##################EJERCICIO CLASE #######################
+
+#Borron’s realiza revisiones anuales de los corredores de bolsa en línea, en la que se incluyen tanto
+#corredores a los que se les puede contactar vía un explorador de Internet, así como corredores que
+#tienen acceso directo y que ponen al cliente en contacto directo con el servidor de una red de corre-
+#  dores de bolsa. La oferta y el desempeño de cada corredor se evalúa en seis áreas, empleando para
+#cada área una escala de 0 a 5. Los resultados se ponderan para obtener una evaluación general y a
+#cada corredor se le asigna una evaluación final que va de cero a cinco estrellas. Tres de las áreas
+#evaluadas son ejecución de la operación, facilidad de uso y gama de ofertas. Un 5 en ejecución de
+#la operación significa que la llegada del pedido y el proceso de ejecución fluyó con facilidad de un
+#paso a otro. En facilidad de uso, 5 significa que el sitio es de fácil uso y que se puede ajustar para
+#ver lo que le interesa al usuario ver. Un 5 en gama de ofertas significa que todas las transacciones
+#pueden realizarse en línea. En los datos siguientes se presentan las puntuaciones obtenidas en eje-
+# cución de la operación, facilidad de uso y gama de ofertas y el número de estrellas obtenidas por los
+#integrantes de una muestra de 10 corredores de bolsa (Barron’s, 10 de marzo de 2003).
+##corredor de bolsa 
+corredor<- c( "wall st", "etrade1", "etrade2", "pre trade", "track", "water house", "brown", "br america","merrill lynch","strong funds")#independiente
+operacion <- c(3.7, 3.4, 2.5, 4.8, 4, 3, 2.7, 1.7, 2.2, 1.4)#independiente
+uso <- c(4.5, 3, 4, 3.7, 3.5, 3, 2.5, 3.5, 2.7, 3.6)#independiente
+gama <- c(4.8, 4.2, 4, 3.4, 3.2, 4.6, 3.3, 3.1, 3, 2.5)#independiente
+estrellas <- c(4, 3.5, 3.5, 3.5, 3.5, 3.5, 3, 3, 2.5, 2)#dependiente
+
+#A) Determine la ecuación de regresión estimada que se puede usar para predecir el número de
+#estrellas dadas las evaluaciones a ejecución, facilidad de uso y gama de ofertas.
+r<-data.frame(estrellas,gama,uso,operacion)
+cor(r,use = "everything",method = "pearson")
+modmo<-lm(estrellas~gama+uso+operacion)
+summary(modmo)
+estrellas=.34510+(.45852)*(gama)+(.13249)*(uso)+(.25482*)(operacion)
+
+#b) Emplee la prueba F para determinar la significancia global de la relación. Empleando como
+#nivel de significancia 0.95, ¿cuál es la conclusión?
+
+
+
+#d)Elimine cualquiera de las variables independientes que no sea significativa para la ecuación
+#de regresión estimada. ¿Cuál es la ecuación de regresión estimada que recomienda? Com-
+# pare R 2 con el valor de R 2 para el inciso a). Analice las diferencias.
+#e) comparar los modelos y decir cual es el mejor segun el metodo step by step
