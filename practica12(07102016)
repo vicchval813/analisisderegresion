@@ -1,0 +1,29 @@
+mod2<-lm(precio~calidad,data=moch)
+
+##########aplicar los supuestos para ver si 
+#tenemos un buen modelo
+
+moch$ajus<-fitted(mod2)
+moch$resi<-residuals(mod2)
+moch$rstud<-rstudent(mod2)
+
+######ahora probaremos el supuesto de normalidad
+
+install.packages("lmtest")
+require(lmtest)
+ks.test(moch$rstud,"pnorm")
+#histograma
+hist(moch$rstud,xlab = "residuales", main = "hist residuales")
+#el p-values para el contraste de normalidad 
+#es mayor que .05 (p=.634) y ademas el histograma
+#se parece a una distribucion normal
+#(curva en forma de campana) entonces no hay probelma de normalidad
+#2 supuesto
+#homogeneidad de varianzas
+bptest(mod2,studentize=FALSE, data=moch)
+#significancia p value =.4154 mayor de .05, por lo que podemos decir
+#que la varianza es constante a lo largo de la muestra
+#prueba durbin watson
+dwtest(modmo,alternative = "two.sided",data=moch)
+#aceptamos la hipotesis nula de que no existe correlacio
+#entre los residuos con un p-value superior a .05 p value=.6396
