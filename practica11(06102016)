@@ -92,15 +92,38 @@ estrellas <- c(4, 3.5, 3.5, 3.5, 3.5, 3.5, 3, 3, 2.5, 2)#dependiente
 r<-data.frame(estrellas,gama,uso,operacion)
 cor(r,use = "everything",method = "pearson")
 modmo<-lm(estrellas~gama+uso+operacion)
-summary(modmo)
-estrellas=.34510+(.45852)*(gama)+(.13249)*(uso)+(.25482*)(operacion)
+modmo
+#la ecuacion de regresion es:
+estrellas=.34510+((.45852)*(gama))+((.13249)*(uso))+((.25482*)(operacion))
 
 #b) Emplee la prueba F para determinar la significancia global de la relación. Empleando como
 #nivel de significancia 0.95, ¿cuál es la conclusión?
 
+summary(modmo)
+#F=15.49 lo que vemos que las variables tienen significancia son 
+# operacion con un un valor de .45852 y operacion con un valor de .25482 
 
 
-#d)Elimine cualquiera de las variables independientes que no sea significativa para la ecuación
+#c)Elimine cualquiera de las variables independientes que no sea significativa para la ecuación
 #de regresión estimada. ¿Cuál es la ecuación de regresión estimada que recomienda? Com-
 # pare R 2 con el valor de R 2 para el inciso a). Analice las diferencias.
-#e) comparar los modelos y decir cual es el mejor segun el metodo step by step
+
+modmo1<-lm(estrellas~gama+operacion)
+modmo1
+#La nueva ecuacion es: 
+estrellas=.6718+((.4853)*(gama))+((.2641)(operacion))
+summary(modmo1)
+#disminuyo mi residual de .2431 a .2412 y mi R-scuared(cuadrada) paso de .8856 a .8686
+# y mi r ajustada paso de .8284 a .8311 lo cual implica que se mejoro mi correlacion 
+#multivariable, esto no implica que pueda llegar asta aqui si no que se pueden
+#dar mejores resultados, lo cual recomiendo el segundo.
+
+
+#d) comparar los modelos y decir cual es el mejor segun el metodo step by step
+
+step(modmo,direction = "backward")
+#se inicia con un AIC de -25.39, pero el que reconmienda es con un AIC de -26.01
+#lo cual implica que recomienda el modelo
+
+########################estrellas~gama+operacion##################
+
