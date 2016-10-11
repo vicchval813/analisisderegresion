@@ -1,0 +1,28 @@
+#definimos nuestros vectores
+y<-c(10,25,32,43,58,62,67,71)
+x1<-c(1,3,4,5,7,8,10,10)
+x2<-c(0,-1,0,1,-1,0,-1,2)
+m<-c(1,1,1,1,1,1,1,1)
+#media
+med<-median(y)
+med
+#suma de errores
+sr<-c((y-med)**2)
+sr
+#Armamos nuestra matriz con nuestros vectores
+ctr<-matrix(c(m,x1,x2),nrow = 8,ncol = 3)
+ctr
+#confirmamos que sea un vector
+is.matrix(ctr)
+dim(ctr)
+#Realizamos la transpuesta de muestra matriz ctr´
+trs<-t(ctr)
+trs
+#ahora realizamos la inversa de (ctr´ctr)^-1
+inver<-solve(trs%*%ctr)
+inver
+#vector queda
+cx<-c(inver%*%trs)
+cx
+B<-c(cx*y)
+B
