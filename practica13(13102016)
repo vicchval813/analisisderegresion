@@ -1,0 +1,52 @@
+#Borron’s realiza revisiones anuales de los corredores de bolsa en línea, en la que se incluyen tanto
+#corredores a los que se les puede contactar vía un explorador de Internet, así como corredores que
+#tienen acceso directo y que ponen al cliente en contacto directo con el servidor de una red de corre-
+#  dores de bolsa. La oferta y el desempeño de cada corredor se evalúa en seis áreas, empleando para
+#cada área una escala de 0 a 5. Los resultados se ponderan para obtener una evaluación general y a
+#cada corredor se le asigna una evaluación final que va de cero a cinco estrellas. Tres de las áreas
+#evaluadas son ejecución de la operación, facilidad de uso y gama de ofertas. Un 5 en ejecución de
+#la operación significa que la llegada del pedido y el proceso de ejecución fluyó con facilidad de un
+#paso a otro. En facilidad de uso, 5 significa que el sitio es de fácil uso y que se puede ajustar para
+#ver lo que le interesa al usuario ver. Un 5 en gama de ofertas significa que todas las transacciones
+#pueden realizarse en línea. En los datos siguientes se presentan las puntuaciones obtenidas en eje-
+# cución de la operación, facilidad de uso y gama de ofertas y el número de estrellas obtenidas por los
+#integrantes de una muestra de 10 corredores de bolsa (Barron’s, 10 de marzo de 2003).
+##corredor de bolsa 
+corredor<- c( "wall st", "etrade1", "etrade2", "pre trade", "track", "water house", "brown", "br america","merrill lynch","strong funds")#independiente
+operacion <- c(3.7, 3.4, 2.5, 4.8, 4, 3, 2.7, 1.7, 2.2, 1.4)#independiente
+uso <- c(4.5, 3, 4, 3.7, 3.5, 3, 2.5, 3.5, 2.7, 3.6)#independiente
+gama <- c(4.8, 4.2, 4, 3.4, 3.2, 4.6, 3.3, 3.1, 3, 2.5)#independiente
+estrellas <- c(4, 3.5, 3.5, 3.5, 3.5, 3.5, 3, 3, 2.5, 2)#dependiente
+
+bolsa<-data.frame(estrellas,gama,uso,operacion)
+#A) Determine la ecuación de regresión estimada que se puede usar para predecir el número de
+#estrellas dadas las evaluaciones a ejecución, facilidad de uso y gama de ofertas.
+
+mbolsa<-lm(estrellas~gama+uso+operacion)
+summary(mbolsa)
+
+#######33 prediccion del mrm#########
+
+inter<-seq(min(bolsa$uso),max(bolsa$uso),length=length(bolsa$uso))###rango para la variables
+bolpred<-data.frame(gama=3.5,operacion=2.5,uso=inter)
+
+######################genera prediccion####
+
+predi1<-predict(mbolsa,bolpred,interval = "prediction",se.fit = TRUE,data=bolsa)
+head(predi1)
+head(predi1$fit)#fit es y gorrito , ejemplo cuando y gorrito sea 2.918198,
+
+##deteectar multicolinealidad en el modelo
+#cuando un modelo tiene multicolinealidad en un MRM es cuando una v.i
+#es combinacion lineal de otra v.i, es decir la multicolinealidad existe en un MRM
+#si hay fuerte correlacion entre 2 o mas v.i, esto es cuando tengamos un coeficiente de
+#correlacion sea 1. Para detectar esta colinealidad se estima el factor inflacion de la varianza (VIF)
+#este factor se calcula con R a traves de la funcion vif().
+#para este calculo se recomiendan estos rangos
+#FIV Estado de los predictores
+#FIV=1 No correlacionados
+#1<FIV<5 moderadamente correlacionados
+##FIV>5 a 10 altamente correlacionados
+install.packages("car")
+require(car)
+vif(mbolsa)
