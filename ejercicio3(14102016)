@@ -1,0 +1,56 @@
+install.packages("foreign")
+require(foreign)
+setwd("C://Users//ENEDINA//Documents//VIK")
+banco<-data.frame(read.csv("WDI_Data.csv",header = TRUE))
+View(banco)
+
+############MEXICO#########################
+
+esperanza1<-subset(banco,banco$Indicator.Name=="Life expectancy at birth, female (years)" & banco$Country.Name=="Mexico",select = c(X2005:X2013))
+a1<-matrix(esperanza1,nrow = 9)
+View(a1)
+
+tmi1<-subset(banco,banco$Indicator.Name=="Mortality rate, infant (per 1,000 live births)" & banco$Country.Name=="Mexico",select = c(X2005:X2013))
+a2<-matrix(tmi1,nrow = 9)
+
+tgf1<-subset(banco,banco$Indicator.Name=="Fertility rate, total (births per woman)" & banco$Country.Name=="Mexico",select = c(X2005:X2013))
+a3<-matrix(tgf1,nrow=9,ncol = 1)
+
+alfbtsh<-subset(banco,banco$Indicator.Name=="Educational attainment, at least completed primary, population 25+ years, male (%) (cumulative)" & banco$Country.Name=="Mexico",select = c(X2005,X2006,X2007,X2008,X2009,X2010,X2012,X2013,X2014))
+a4<-matrix(alfbtsh,nrow = 9)
+
+alfbtsm<-subset(banco,banco$Indicator.Name=="Educational attainment, at least completed primary, population 25+ years, female (%) (cumulative)" & banco$Country.Name=="Mexico",select = c(X2005,X2006,X2007,X2008,X2009,X2010,X2012,X2013,X2014))
+a5<-matrix(alfbtsm,nrow = 9)
+
+poblacion<-subset(banco,banco$Indicator.Name=="Population in the largest city (% of urban population)" & banco$Country.Name=="Mexico",select = c(X2005:X2013))
+a6<-matrix(poblacion,nrow = 9)
+
+mexico<-data.frame(a1,a2,a3,a4,a5,a6)
+View(mexico)
+install.packages("questionr")
+require(questionr)
+modmex<-lm(a1~a2+a3+a4+a5+a6)
+
+################################ARGENTINA####################################
+arg<-subset(wdi,wdi$Country.Name=="Argentina")
+evf<-subset(arg, arg$Indicator.Name=="Life expectancy at birth, female (years)")
+evf2<-c(subset(evf,evf$X2005  & evf$X2013)) #v.d.
+cevf<-matrix(evf2)
+tmi<-subset(arg, arg$Indicator.Name=="Mortality rate, infant (per 1,000 live births)")
+tmi2<-subset(tmi, tmi$X2005 & tmi$X2013) #v.i.
+ctmi<-matrix(tmi2)
+tgf<-subset(arg, arg$Indicator.Name=="Fertility rate, total (births per woman)")
+tgf2<-subset(tgf, tgf$X2005 & tgf$X2013) #v.i.
+ctgf<-matrix(tgf2)
+urbana<-subset(arg, arg$Indicator.Name=="Population in the largest city (% of urban population)")
+urbana2<-subset(urbana, urbana$X2005 & urbana$X2013) #v.i.
+curbana<-matrix(urbana2)
+
+argn<- data.frame(cevf, ctmi, ctgf, curbana)
+
+a<-lm(cevf~ctmi+ctgf+curbana)
+
+m<-lm(evf2~tmi2+tgf2+urbana2)
+summary(m)
+
+
