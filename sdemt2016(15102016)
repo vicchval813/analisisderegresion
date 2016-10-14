@@ -30,10 +30,10 @@ c2<-c(edad$EDA)
 w2<-c2[-251:-327]
 ##procedemos a buscar las otras variables dependientes de la misma forma
 edad$SEX<-as.numeric(as.character(edad$SEX))
-sex<-subset(ingmensual,ingmensual$SEX==1 | ingmensual$SEX==2)
+sex<-subset(edad,edad$SEX==1 | edad$SEX==2)
 c3<-c(sex$SEX)
 w3<-c3[-251:-327]
-sex$HRSOCUP<-as.numeric(ingmensual$HRSOCUP)
+sex$HRSOCUP<-as.numeric(sex$HRSOCUP)
 horasocup<-subset(sex,sex$HRSOCUP>=1 & sex$HRSOCUP<=168)
 c4<-c(horasocup$HRSOCUP)
 w4<-c4[-251:-300]
