@@ -1,0 +1,117 @@
+install.packages("foreign")
+require(foreign)
+install.packages("questionr")
+require(questionr)
+setwd("C:/Users/ENEDINA/Documents/VIK/sdemt2016")
+ENOE<-data.frame(read.dbf("sdemt216.dbf"))
+
+##primero de la base enoe tenemos que la ciudad es de tipo caracter entonces
+#de la base enoe vamos a tomar a la ciudad como tipo numerico
+
+ENOE$CD_A<-as.numeric(as.character(ENOE$CD_A))
+##llamaremos de la base enoe ala cuidad de culiacan que es el num 24 y no arroja
+#todos los datos de culiacan
+culiacan<-subset(ENOE,ENOE$CD_A==24)
+#ahora de base culiacan tenemos la variable ingocup que es de tipo caracter 
+#lo cual lo seguiremos manteniendo como caracter
+culiacan$INGOCUP<-as.numeric((culiacan$INGOCUP))
+#ahora mandaremos a llamar de la base de culiacan el ingocup
+#la cual solo tendra ingresos que esten entre el intervalo  de 1 a 30000 pesos 
+ingocup<-subset(culiacan,(culiacan$INGOCUP>=1 & culiacan$INGOCUP<=3000))
+c1<-c(ingocup$INGOCUP)
+w1<-c1[-251:-370]
+#despues, teniendo la base ingocup tenemos la variable de edad, donde este es de
+#tipo caracter y lo mantrendemos como tipo nuemrico
+ingocup$EDA<-as.numeric(as.character(ingocup$EDA))
+#ahora de la base de ingocup llamaremos a las edades que esten entre 15 y 65 años y 
+#ya tenemos asta ahora nuestra variable independiente ingocup como v.i y edad como v.d
+edad<-subset(ingocup,(ingocup$EDA>=15 & ingocup$EDA<=65))
+c2<-c(edad$EDA)
+w2<-c2[-251:-327]
+##procedemos a buscar las otras variables dependientes de la misma forma
+edad$SEX<-as.numeric(as.character(edad$SEX))
+sex<-subset(ingmensual,ingmensual$SEX==1 | ingmensual$SEX==2)
+c3<-c(sex$SEX)
+w3<-c3[-251:-327]
+sex$HRSOCUP<-as.numeric(ingmensual$HRSOCUP)
+horasocup<-subset(sex,sex$HRSOCUP>=1 & sex$HRSOCUP<=168)
+c4<-c(horasocup$HRSOCUP)
+w4<-c4[-251:-300]
+horasocup$ANIOS_ESC<-as.numeric(horasocup$ANIOS_ESC)
+tescolar<-subset(horasocup,horasocup$ANIOS_ESC>=1 & horasocup$ANIOS_ESC<=24)
+c5<-c(tescolar$ANIOS_ESC)
+w5<-c5[-251:-294]
+ 
+equipo3<-data.frame(w1,w2,w3,w4,w5)
+View(equipo3)
+cor (equipo3, use ="everything", method="pearson")
+modelo<-lm(w1~w2+w3+w4+w5)
+summary(modelo)
+#Adjusted R-squared:  -0.01205 
+#p-value: 0.904
+#Multiple R-squared:  0.004211
+#F-statistic: 0.259
+##la ecuacion es 
+# w1=1897.0764+.5766w2+7.8577w3-1.5297w4-11.5360w5
+anova(modelo)
+step(modelo, direction = "backward")
+#########resultados#####
+#Start:  AIC=3344.9
+#w1 ~ w2 + w3 + w4 + w5
+
+#Df Sum of Sq       RSS    AIC
+#- w3    1      3082 155334082 3342.9
+#- w2    1     16181 155347181 3342.9
+#- w4    1    230393 155561394 3343.3
+#- w5    1    430676 155761676 3343.6
+#<none>              155331000 3344.9
+
+#Step:  AIC=3342.91
+#w1 ~ w2 + w4 + w5
+
+#Df Sum of Sq       RSS    AIC
+#- w2    1     21933 155356015 3340.9
+#- w4    1    229002 155563084 3341.3
+#- w5    1    430646 155764728 3341.6
+#<none>              155334082 3342.9
+
+#Step:  AIC=3340.94
+#w1 ~ w4 + w5
+
+#Df Sum of Sq       RSS    AIC
+#- w4    1    231158 155587172 3339.3
+#- w5    1    416180 155772195 3339.6
+#<none>              155356015 3340.9
+
+#Step:  AIC=3339.31
+#w1 ~ w5
+
+#Df Sum of Sq       RSS    AIC
+#- w5    1    400631 155987804 3338.0
+#<none>              155587172 3339.3
+
+#Step:  AIC=3337.96
+#w1 ~ 1
+
+
+#Call:
+#  lm(formula = w1 ~ 1)
+
+#Coefficients:
+#  (Intercept)  
+#1776
+
+###la relacion que propone es lm(w1 ~ 1)
+model1<-lm(w1 ~ 1)
+summary(model1) 
+
+##pueba de homogeneidad
+#prueba homodgeneidad de varianzas
+install.packages("lmtest")
+require("lmtest")
+bptest(model1, studentize = FALSE)
+##resultados
+#Breusch-Pagan test
+
+#data:  model1
+#BP = 7.8848e-31, df = 0, p-value < 2.2e-16
