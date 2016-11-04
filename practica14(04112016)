@@ -1,0 +1,11 @@
+setwd("C:/Users/Sala-C27/Documents/R")
+require(foreign)
+mti2015<-data.frame(read.dbf("mti2015_05_17_sdem_precodificado.DBF"))
+wtd.table(mti2015$T_LOC,weights=mti2015$FAC_MTI)
+wtd.table(mti2015$T_LOC,mti2015$CLASE2,weights=mti2015$FAC_MTI)
+########poblacio objetivo son ocupados y zonas rurales
+mti2015boj<-subset(mti2015,mti2015$CLASE2==1&mti2015$T_LOC==4)
+install.packages("questionr")
+require(questionr)
+wtd.table(mti2015boj$SEX,weights=mti2015boj$FAC_MTI)
+wtd.table(mti2015boj$T_PER,weights=mti2015boj$FAC_MTI)
