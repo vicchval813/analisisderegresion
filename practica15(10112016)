@@ -1,0 +1,23 @@
+install.packages("questionr")
+require(questionr)
+install.packages("foreign")
+require(foreign)
+setwd("C:\\Users\\Sala-C5.RTIC-C5-HP\\Downloads\\v")
+sdemt2016<-read.dbf("sdemt216.dbf")
+coe1<-read.dbf("coe1t216.dbf")
+coe2<-read.dbf("coe2t216.dbf")
+
+folio<-paste(sdemt2016$CD_A,sdemt2016$ENT,sdemt2016$CON,sdemt2016$V_SEL,sdemt2016$N_HOG,sdemt2016$H_MUD,sdemt2016$N_REN)
+v<-data.frame(sdemt2016,folio)
+
+folio<-paste(coe1$CD_A,coe1$ENT,coe1$CON,coe1$V_SEL,coe1$N_HOG,coe1$H_MUD,coe1$N_REN)
+v1<-data.frame(coe1,folio)
+
+folio<-paste(coe2$CD_A,coe2$ENT,coe2$CON,coe2$V_SEL,coe2$N_HOG,coe2$H_MUD,coe2$N_REN)
+v2<-data.frame(coe2,folio)
+
+total<-merge(v,v1,by="folio",all.x=TRUE)
+enoetotal<-merge(total,v2,by="folio",all.x=TRUE)
+#para confirmar que hemos un buen pegado, realizamos una tabla que mande a llamar variables
+#que solo sean unicas en cada tabla
+wtd.table(enoetotal$SEX,enoetotal$P1,weights = enoetotal$FAC)
