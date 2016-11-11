@@ -1,0 +1,25 @@
+install.packages("questionr")
+require(questionr)
+install.packages("foreign")
+require(foreign)
+setwd("C:\\Users\\SALA-C17\\Documents\\infantil")
+
+mti2015<-data.frame(read.dbf("mti2015_05_17_sdem_precodificado.DBF"))
+table(mti2015$EDA, mti2015$CLASE2)
+wtd.table(mti2015$T_LOC,weights=mti2015$FAC_MTI)
+wtd.table(mti2015$T_LOC,mti2015$CLASE2,weights=mti2015$FAC_MTI)
+########poblacio objetivo: niños ocupados y que sean de zonas rurales
+mti2015boj<-subset(mti2015,mti2015$CLASE2==1&mti2015$T_LOC==4)
+wtd.table(mti2015boj$SEX,weights=mti2015boj$FAC_MTI)
+wtd.table(mti2015boj$CLASE2, weights=mti2015boj$FAC_MTI)
+
+###################################################################
+
+
+cues1<-read.dbf("mti2015_05_11_cuestionario_basico.DBF")
+cues2<-read.dbf("mti2015_12_17_cuestionario_basico.DBF")
+
+folio<-paste(mti2015boj$EDA1,mti2015boj$SEX,mti2015boj$NIV_INS,mti2015boj$CON)
+v<-data.frame(mti2015boj,folio)
+
+folio<-paste(cues1$EDA1,cues1$SEX)
