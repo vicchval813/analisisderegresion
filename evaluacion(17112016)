@@ -1,0 +1,22 @@
+install.packages("foreign")
+require(foreign)
+install.packages("questionr")
+require(questionr)
+setwd("C://Users//sala-c9//Downloads")
+Documento<-data.frame(read.spss("solorural.sav"))
+##total
+total<-data.frame(Documento,Documento$t_loc,wigths=Documento$fac_mti)
+##poblacion de 5-17
+poblacion<-subset(total,total$eda1>=1&total$eda1<=3,weights=total$fac_mti)
+
+##ocupados de 5-17
+ocup<-subset(poblacion,poblacion$clase2==1,weights=poblacion$fac_mti)
+
+##ocupados por grupos de edad
+eda1<-subset(ocup,ocup$eda1==1,weights=ocup$fac_mti)
+eda2<-subset(ocup,ocup$eda1==2,weights=ocup$fac_mti)
+eda3<-subset(ocup,ocup$eda1==3,weights=ocup$fac_mti)
+##ocupados segun la asistencia escolar
+asiste<-subset(ocup,ocup$asis==1,weights=ocup$fac_mti)
+noasiste<-subset(ocup,ocup$asis==2,weights=ocup$fac_mti)
+noespecif<-subset(ocup,ocup$asis==3,weights=ocup$fac_mti)
