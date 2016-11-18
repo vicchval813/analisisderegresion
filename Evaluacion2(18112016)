@@ -1,0 +1,52 @@
+install.packages("questionr")
+require(questionr)
+install.packages("foreign")
+require(foreign)
+setwd("C://Users//Sala-C27//Desktop")
+doc<-data.frame(read.spss("solorural.sav"))
+pob<-data.frame(doc,doc$t_loc)
+ocu<-subset(doc,doc$c_ocu=="ocupado")
+#el wtd.table se utiliza solo para expandir datos que se utiliza fac_mti
+###########
+#t_per~sex+eda1+asis+sex_jefe+escol_jefe+t_apo1+ocu_jefe
+table(ocu$t_per)###recodificar solo en 3 categorias...eliminar 4 
+#   1    2    3    4 
+#1615  588   75    1
+ ##otra forma de recodificar
+install.packages("plyr")
+require(plyr)
+ocu$t_per<-revalue(factor(ocu$t_per),c("4"=NA))
+table(ocu$t_per)#t_per es la variable dependiente y aqui ya mandamos alos variables nulos a NA
+#etiquetamos la variable independiente
+ocu$t_per<-revalue(factor(ocu$t_per),c("1"="Familiar","2"="No familiar","3"="Cuenta propia"))
+table(ocu$t_per)
+##verificamos alas variables independientes si 
+#tiene valores nulos y los mandamos a NA
+table(ocu$sex)
+table(ocu$eda1,ocu$eda)
+table(ocu$eda1)
+ocu$eda1<-revalue(factor(ocu$eda1),c("1"="5 a 9","2"="10 a 13","3"="14 a 17"))
+table(ocu$eda1)
+table(ocu$asis)
+table(ocu$sex_jefe)
+table(ocu$escol_jefe)
+ocu$escol_jefe<-revalue(factor(ocu$escol_jefe),c("No especificado"=NA))
+table(ocu$escol_jefe)
+table(ocu$t_apo1)
+ocu$t_apo1<-revalue(factor(ocu$t_apo1),c("Otro tipo de ayuda"=NA))
+table(ocu$t_apo1)
+table(ocu$ocu_jefe)
+#################
+#nnet se utiliza para aquella variables independientes tienen mas de 2 categorias
+require(nnet)
+modelo1<-multinom(t_per~1,data = ocu)
+summary(modelo1)
+modfinal<-multinom(t_per~sex+eda1+asis+sex_jefe+escol_jefe+t_apo1+ocu_jefe,data=ocu)
+g<-summary(modfinal,Wald=T)
+print(g)
+
+##############
+install.packages("stargazer")
+require(stargazer)
+s<-stargazer(modfinal,type = "html",title = "coefficients",summary = T)
+stargazer(modfinal,type = "text",title = "mlogit",digits = 2,out="C:\\Users\\Sala-C27\\Documents\\vik\\summary.txt")
