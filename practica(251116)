@@ -1,0 +1,37 @@
+install.packages("questionr")
+require(questionr)
+install.packages("foreign")
+require(foreign)
+setwd("C://Users//Sala-C27//Documents//vik")
+mti2015<-data.frame(read.dbf("mti2015_05_17_sdem_precodificado.DBF"))
+
+table(mti2015$EDA, mti2015$CLASE2)
+wtd.table(mti2015$T_LOC,weights=mti2015$FAC_MTI)
+wtd.table(mti2015$T_LOC,mti2015$POS_OCU2,weights=mti2015$FAC_MTI)
+########poblacio objetivo: niños ocupados y que sean de zonas rurales
+mti2015obj<-subset(mti2015,mti2015$POS_OCU2&mti2015$T_LOC==4)
+wtd.table(mti2015obj$SEX,weights=mti2015obj$FAC_MTI)
+wtd.table(mti2015obj$POS_OCU2, weights=mti2015obj$FAC_MTI)
+
+#################################################################
+#utilizar variables: t_per~sex+eda1+asis+t_apo1+rama+niv_ing
+table(mti2015obj$T_PER) #(FAMILIAR, NO FAMILIAR, CTA PROPIA)
+table(mti2015obj$SEX) #(hombre,mujer)
+table(mti2015obj$EDA1) #FALTA 1, AGRUPAR EDADES
+table(mti2015obj$ASIS) #(ASISTE, NO ASISTE)
+table(mti2015obj$T_APO1) #ya se quito el 4 (beca, otro prog de gob, ayuda de un fam, vive en otro hog, noha recibido ayuda)
+table(mti2015obj$RAMA) #QUITAR 7 (AGRO, CONST, IND MANU, COMERC, SERV, OTRO)
+table(mti2015obj$NIV_ING) #QUITAR 0, 5 (NO RECIBE, 1 SALA MIN, MAS 1 HASTA 2 SAL MIN, MAS DE 2 SAL MIN)
+
+#####ETIQUETANDO
+mti2015obj$T_PER<-factor(mti2015obj$T_PER, levels=c(1,2,3), labels = c("familiar", "no familiar", "cuenta propia"))
+table(mti2015obj$T_PER)
+mti2015obj$SEX<-factor(mti2015obj$SEX, levels=c(1,2), labels = c("hombre", "mujer"))
+table(mti2015obj$SEX)
+install.packages("plyr")
+library(plyr)
+mti2015obj$EDA1<-revalue(factor(mti2015obj$EDA1), c("1"="5 a 9", "2"="10 a 13", "3"="14 a 17")) #no se puede agrupar
+table(mti2015obj$EDA1)
+mti2015obj$ASIS<-factor(mti2015obj$ASIS, levels=c(1,2), labels = c("asiste", "no asiste"))
+table(mti2015obj$ASIS)
+
