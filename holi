@@ -1,0 +1,22 @@
+install.packages("questionr")
+require(questionr)
+install.packages("foreign")
+require(foreign)
+setwd("C://Users//Sala-C27//Documents//vik")
+mti2015<-data.frame(read.dbf("mti2015_05_17_sdem_precodificado.DBF"))
+
+table(mti2015$EDA, mti2015$CLASE2)
+wtd.table(mti2015$T_LOC,weights=mti2015$FAC_MTI)
+wtd.table(mti2015$T_LOC,mti2015$CLASE2,weights=mti2015$FAC_MTI)
+########poblacio objetivo: niños ocupados y que sean de zonas rurales
+mti2015obj<-subset(mti2015,mti2015$CLASE2==1&mti2015$T_LOC==4)
+wtd.table(mti2015obj$SEX,weights=mti2015obj$FAC_MTI)
+wtd.table(mti2015obj$CLASE2, weights=mti2015obj$FAC_MTI)
+
+#################################################################
+#utilizar variables: t_per~sex+eda1+asis+t_apo1+rama+niv_ing
+table(mti2015obj$T_PER) #(FAMILIAR, NO FAMILIAR, CTA PROPIA)
+table(mti2015obj$SEX) #(hombre,mujer)
+table(mti2015obj$EDA1) #FALTA 1, AGRUPAR EDADES
+table(mti2015obj$ASIS) #(ASISTE, NO ASISTE)
+table(mti2015obj$T_APO1)
