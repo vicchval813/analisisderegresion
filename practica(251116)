@@ -1,37 +1,317 @@
-install.packages("questionr")
-require(questionr)
+# Trabajo Final
 install.packages("foreign")
 require(foreign)
-setwd("C://Users//Sala-C27//Documents//vik")
-mti2015<-data.frame(read.dbf("mti2015_05_17_sdem_precodificado.DBF"))
 
-table(mti2015$EDA, mti2015$CLASE2)
-wtd.table(mti2015$T_LOC,weights=mti2015$FAC_MTI)
-wtd.table(mti2015$T_LOC,mti2015$POS_OCU2,weights=mti2015$FAC_MTI)
-########poblacio objetivo: niños ocupados y que sean de zonas rurales
-mti2015obj<-subset(mti2015,mti2015$POS_OCU2&mti2015$T_LOC==4)
-wtd.table(mti2015obj$SEX,weights=mti2015obj$FAC_MTI)
-wtd.table(mti2015obj$POS_OCU2, weights=mti2015obj$FAC_MTI)
+install.packages("questionr")
+require(questionr)
 
-#################################################################
-#utilizar variables: t_per~sex+eda1+asis+t_apo1+rama+niv_ing
-table(mti2015obj$T_PER) #(FAMILIAR, NO FAMILIAR, CTA PROPIA)
-table(mti2015obj$SEX) #(hombre,mujer)
-table(mti2015obj$EDA1) #FALTA 1, AGRUPAR EDADES
-table(mti2015obj$ASIS) #(ASISTE, NO ASISTE)
-table(mti2015obj$T_APO1) #ya se quito el 4 (beca, otro prog de gob, ayuda de un fam, vive en otro hog, noha recibido ayuda)
-table(mti2015obj$RAMA) #QUITAR 7 (AGRO, CONST, IND MANU, COMERC, SERV, OTRO)
-table(mti2015obj$NIV_ING) #QUITAR 0, 5 (NO RECIBE, 1 SALA MIN, MAS 1 HASTA 2 SAL MIN, MAS DE 2 SAL MIN)
-
-#####ETIQUETANDO
-mti2015obj$T_PER<-factor(mti2015obj$T_PER, levels=c(1,2,3), labels = c("familiar", "no familiar", "cuenta propia"))
-table(mti2015obj$T_PER)
-mti2015obj$SEX<-factor(mti2015obj$SEX, levels=c(1,2), labels = c("hombre", "mujer"))
-table(mti2015obj$SEX)
 install.packages("plyr")
-library(plyr)
-mti2015obj$EDA1<-revalue(factor(mti2015obj$EDA1), c("1"="5 a 9", "2"="10 a 13", "3"="14 a 17")) #no se puede agrupar
-table(mti2015obj$EDA1)
-mti2015obj$ASIS<-factor(mti2015obj$ASIS, levels=c(1,2), labels = c("asiste", "no asiste"))
-table(mti2015obj$ASIS)
+require(plyr)
+
+setwd("C://Users//ENEDINA//Documents//VIK")
+tir<-data.frame(read.dbf("mti2015_05_17_sdem_precodificado.DBF"))
+
+tir_loc <- data.frame (subset(tir,tir$T_LOC==4))
+
+table(tir_loc$T_PER)
+wtd.table(tir_loc$T_PER==0)
+wtd.table(tir_loc$T_PER==1)
+wtd.table(tir_loc$T_PER==2)
+
+wtd.table(tir_loc$T_LOC, weights=tir_loc$FAC_MTI)
+
+#pegado de bases
+
+CUE1<- data.frame(read.dbf("mti2015_12_17_cuestionario_basico.DBF"))
+CUE2 <- data.frame(read.dbf("mti2015_05_11_cuestionario_basico.DBF"))
+
+folio <- paste(tir_loc$CON, tir_loc$ENT, tir_loc$V_SEL, tir_loc$N_HOG, tir_loc$H_MUD, tir_loc$N_REN, tir_loc$CD_A)
+x <- data.frame(tir_loc,folio)
+
+folio <-paste(CUE1$CON, CUE1$ENT, CUE1$V_SEL, CUE1$N_HOG, CUE1$H_MUD, CUE1$N_REN, CUE1$CD_A)
+y <- data.frame(CUE1, folio)
+
+folio <- paste(CUE2$CON, CUE2$ENT, CUE2$V_SEL, CUE2$N_HOG, CUE2$H_MUD, CUE2$N_REN, CUE2$CD_A)
+z <- data.frame(CUE2, folio)
+
+total <- merge(x,y, by="folio", all.x = TRUE)
+MTITOTAL <- merge(total, z, by="folio", all.x = TRUE)
+
+
+rural<- data.frame (subset(MTITOTAL,MTITOTAL$T_LOC==4))
+sdemrural <- subset(rural, weights = rural$FAC_MTI)
+
+trabajadores <- data.frame (subset(rural,rural$C_OCU==2))
+trab <- subset(trabajadores, weights = trabajadores$FAC_MTI)
+
+#2->poblacion ocupada bajo la edad minima
+
+install.packages("nnet")
+require(nnet)
+model <- multinom(T_PER~1, data=trab)
+
+# weights:  6 (2 variable)
+#initial  value 909.650975 
+#final  value 437.195253 
+#converged
+
+#utilizando las variables:t_per~sex+eda1+asis+t_apo1+rama+niv_ing
+modefin <- multinom(T_PER~ SEX + EDA1 + ASIS + T_APO1+RAMA+NIV_ING, data=trab)
+
+# weights:  24 (14 variable)
+#initial  value 328.485074 
+#iter  10 value 109.883655
+#iter  20 value 95.464464
+#iter  30 value 95.406827
+#iter  40 value 95.406617
+#iter  50 value 95.404494
+#final  value 95.404358 
+#converged
+
+g <- summary(modefin, wald = T)
+print(g)
+
+#Call:
+#  multinom(formula = T_PER ~ SEX + EDA1 + ASIS + T_APO1 + RAMA + 
+#             NIV_ING, data = trab)
+
+#Coefficients:
+#  (Intercept)       SEX2         EDA1      ASIS     T_APO1 RAMA  NIV_ING
+#2    9.348514 0.14079353 -0.220930338 -15.27450  0.1573937    0 2.165244
+#3   43.091752 0.06547357  0.004214852 -49.42936 -0.0836239    0 2.162530
+
+#Std. Errors:
+#  (Intercept)      SEX2      EDA1      ASIS    T_APO1 RAMA   NIV_ING
+#2   0.6280118 0.5323771 0.5099991 0.6280118 0.1454386  NaN 0.4601925
+#3   0.8191967 0.7344292 0.6967194 0.8191967 0.2229458    0 0.5144133
+
+#Residual Deviance: 190.8087 
+#AIC: 214.8087 
+
+install.packages("stargazer")
+require(stargazer)
+result <- stargazer(modefin, type = "html", title = "coefficients", summary = T)
+
+stargazer(modefin, type="text",apply.coef = exp,apply.se = exp, title = "mlogit", digits = 2, out = "C:\\Users\\ENEDINA\\Documents\\VIK\\modelo.txt")
+
+#mlogit
+#==============================================================
+#  Dependent variable:             
+#  --------------------------------------------
+#  2                      3               
+#(1)                    (2)              
+#--------------------------------------------------------------
+#  SEX2                  1.15                  1.07              
+#(1.70)                (2.08)             
+
+#EDA1                  0.80                  1.00              
+#(1.67)                (2.01)             
+
+#ASIS                 0.0000                 0.00              
+#(1.87)                (2.27)             
+
+#T_APO1                1.17                  0.92              
+#(1.16)                (1.25)             
+
+#RAMA                  1.00                  1.00              
+#(1.00)             
+
+#NIV_ING             8.72***                8.69***            
+#  (1.58)                (1.67)             
+
+#Constant          11,481.75*** 5,182,149,225,018,316,800.00***
+#  (1.87)                (2.27)             
+
+#--------------------------------------------------------------
+#  Akaike Inf. Crit.    214.81                214.81             
+#==============================================================
+#  Note:                              *p<0.1; **p<0.05; ***p<0.01
+
+###########################################
+#######recodificando las variables#########
+#utilizando las variables:t_per~sex+eda1+asis+t_apo1+rama+niv_ing
+table(MTITOTAL$T_PER)
+
+#   0     1     2     3 
+#15069  1434   590    67
+# no muestra a los no especificados indicado con el numero 4
+#por lo que se etiquetará del 1-3 y al 0 mandarlo a valor nulo
+
+MTITOTAL$T_PER <- revalue(factor(MTITOTAL$T_PER), c("0"=NA))
+table(MTITOTAL$T_PER)
+
+MTITOTAL$T_PER <- revalue(factor(MTITOTAL$T_PER), c("1"= "Familiar", "2"= "No familiar", "3"= "Cuenta propia"))
+persona <- wtd.table(MTITOTAL$T_PER, weights = MTITOTAL$FAC_MTI)
+persona
+
+#Familiar   No familiar Cuenta propia 
+#121160          8629          4043 
+
+MTITOTAL$SEX <- revalue(factor(MTITOTAL$SEX), c("1"= "Hombres", "2"= "Mujeres"))
+sexo <- wtd.table(MTITOTAL$SEX, weights = MTITOTAL$FAC_MTI)
+sexo
+#Hombres Mujeres 
+#2133826 2083188
+
+table(MTITOTAL$ASIS)
+#0     1     2 
+#3 15435  1722
+
+MTITOTAL$ASIS <- revalue(factor(MTITOTAL$ASIS), c("0"=NA))
+table(MTITOTAL$ASIS)
+#1     2 
+#15435  1722
+
+MTITOTAL$ASIS<-revalue(factor(MTITOTAL$ASIS),c("1"="Asiste","2"="No Asiste"))
+asistencia <- wtd.table(MTITOTAL$ASIS, weights = MTITOTAL$FAC_MTI)
+asistencia
+#Asiste No Asiste 
+#4146051     70963
+
+table(MTITOTAL$T_APO1)
+#0    1    2    3    4    5 
+#3 7898 3449  189   21 5600
+#quitar 0 y 5
+
+MTITOTAL$T_APO1 <- revalue(factor(MTITOTAL$T_APO1), c("0"=NA))
+MTITOTAL$T_APO1 <- revalue(factor(MTITOTAL$T_APO1), c("5"=NA))
+table(MTITOTAL$T_APO1)
+#1    2    3    4 
+#7898 3449  189   21
+
+MTITOTAL$T_APO1<-revalue(factor(MTITOTAL$T_APO1),c("1"="Becado","2"="Otro programa","3"="Ayudado por un familiar","4"="Otro tipo de ayuda"))
+apoyo<- wtd.table(MTITOTAL$T_APO1, weights = MTITOTAL$FAC_MTI)
+apoyo
+#Becado           Otro programa Ayudado por un familiar      Otro tipo de ayuda 
+#1963104                  992375                   35943                   10516 
+
+table(MTITOTAL$RAMA)
+#0     1     2     3     4     5     6     7 
+#15368   121   186   223   281     2   950    29
+
+MTITOTAL$RAMA <- revalue(factor(MTITOTAL$RAMA), c("0"=NA))
+MTITOTAL$RAMA <- revalue(factor(MTITOTAL$RAMA), c("7"=NA))
+table(MTITOTAL$RAMA)
+
+MTITOTAL$RAMA<-revalue(factor(MTITOTAL$RAMA),c("1"="Agro","2"="Construccion","3"="Ind. Manufac","4"="comercio","5"="Servicios","6"="Otros"))
+espacio<- wtd.table(MTITOTAL$RAMA)
+espacio
+#Agro Construccion Ind. Manufac     comercio    Servicios        Otros 
+#121          186          223          281            2          950 
+
+table(MTITOTAL$NIV_ING)
+#0     1     2     3     4     5 
+#15192  1099   450   283   113    23 
+
+MTITOTAL$NIV_ING <- revalue(factor(MTITOTAL$NIV_ING), c("0"=NA))
+MTITOTAL$NIV_ING <- revalue(factor(MTITOTAL$NIV_ING), c("5"=NA))
+table(MTITOTAL$NIV_ING)
+
+MTITOTAL$NIV_ING<-revalue(factor(MTITOTAL$NIV_ING),c("1"="No ingresos","2"=" Menos de 1 sal min","3"="1-2 sal min","4"="Mas de 2 sal min"))
+salario<-wtd.table(MTITOTAL$NIV_ING,weights = MTITOTAL$FAC_MTI)
+salario
+#No ingresos  Menos de 1 sal min         1-2 sal min    Mas de 2 sal min 
+#101728               30453                 728                   0 
+
+table(MTITOTAL$EDA1)
+#0    1    2    3 
+#3 6668 6574 3915
+
+MTITOTAL$EDA1<- revalue(factor(MTITOTAL$EDA1), c("0"=NA))
+table(MTITOTAL$EDA1)
+
+MTITOTAL$EDA1<-revalue(factor(MTITOTAL$EDA1),c("1"="5-9 años","2"=" 10-13 años","3"="14-17 años"))
+gedad<-wtd.table(MTITOTAL$EDA1,weights = MTITOTAL$FAC_MTI)
+gedad
+#5-9 años  10-13 años  14-17 años 
+#3038301     1178713           0
+
+MTITOTAL$T_PER <- revalue(factor(MTITOTAL$T_PER), c("0"=NA))
+table(MTITOTAL$T_PER)
+
+MTITOTAL$T_PER <- revalue(factor(MTITOTAL$T_PER), c("1"= "Familiar", "2"= "No familiar", "3"= "Cuenta propia"))
+persona <- wtd.table(MTITOTAL$T_PER, weights = MTITOTAL$FAC_MTI)
+persona
+
+#Familiar   No familiar Cuenta propia 
+#121160          8629          4043 
+
+MTITOTAL$SEX <- revalue(factor(MTITOTAL$SEX), c("1"= "Hombres", "2"= "Mujeres"))
+sexo <- wtd.table(MTITOTAL$SEX, weights = MTITOTAL$FAC_MTI)
+sexo
+#Hombres Mujeres 
+#2133826 2083188
+
+table(MTITOTAL$ASIS)
+#0     1     2 
+#3 15435  1722
+
+MTITOTAL$ASIS <- revalue(factor(MTITOTAL$ASIS), c("0"=NA))
+table(MTITOTAL$ASIS)
+#1     2 
+#15435  1722
+
+MTITOTAL$ASIS<-revalue(factor(MTITOTAL$ASIS),c("1"="Asiste","2"="No Asiste"))
+asistencia <- wtd.table(MTITOTAL$ASIS, weights = MTITOTAL$FAC_MTI)
+asistencia
+#Asiste No Asiste 
+#4146051     70963
+
+table(MTITOTAL$T_APO1)
+#0    1    2    3    4    5 
+#3 7898 3449  189   21 5600
+#quitar 0 y 5
+
+MTITOTAL$T_APO1 <- revalue(factor(MTITOTAL$T_APO1), c("0"=NA))
+MTITOTAL$T_APO1 <- revalue(factor(MTITOTAL$T_APO1), c("5"=NA))
+table(MTITOTAL$T_APO1)
+#1    2    3    4 
+#7898 3449  189   21
+
+MTITOTAL$T_APO1<-revalue(factor(MTITOTAL$T_APO1),c("1"="Becado","2"="Otro programa","3"="Ayudado por un familiar","4"="Otro tipo de ayuda"))
+apoyo<- wtd.table(MTITOTAL$T_APO1, weights = MTITOTAL$FAC_MTI)
+apoyo
+#Becado           Otro programa Ayudado por un familiar      Otro tipo de ayuda 
+#1963104                  992375                   35943                   10516 
+
+table(MTITOTAL$RAMA)
+#0     1     2     3     4     5     6     7 
+#15368   121   186   223   281     2   950    29
+
+MTITOTAL$RAMA <- revalue(factor(MTITOTAL$RAMA), c("0"=NA))
+MTITOTAL$RAMA <- revalue(factor(MTITOTAL$RAMA), c("7"=NA))
+table(MTITOTAL$RAMA)
+
+MTITOTAL$RAMA<-revalue(factor(MTITOTAL$RAMA),c("1"="Agro","2"="Construccion","3"="Ind. Manufac","4"="comercio","5"="Servicios","6"="Otros"))
+espacio<- wtd.table(MTITOTAL$RAMA)
+espacio
+#Agro Construccion Ind. Manufac     comercio    Servicios        Otros 
+#121          186          223          281            2          950 
+
+table(MTITOTAL$NIV_ING)
+#0     1     2     3     4     5 
+#15192  1099   450   283   113    23 
+
+MTITOTAL$NIV_ING <- revalue(factor(MTITOTAL$NIV_ING), c("0"=NA))
+MTITOTAL$NIV_ING <- revalue(factor(MTITOTAL$NIV_ING), c("5"=NA))
+table(MTITOTAL$NIV_ING)
+
+MTITOTAL$NIV_ING<-revalue(factor(MTITOTAL$NIV_ING),c("1"="No ingresos","2"=" Menos de 1 sal min","3"="1-2 sal min","4"="Mas de 2 sal min"))
+salario<-wtd.table(MTITOTAL$NIV_ING,weights = MTITOTAL$FAC_MTI)
+salario
+#No ingresos  Menos de 1 sal min         1-2 sal min    Mas de 2 sal min 
+#101728               30453                 728                   0 
+
+table(MTITOTAL$EDA1)
+#0    1    2    3 
+#3 6668 6574 3915
+
+MTITOTAL$EDA1<- revalue(factor(MTITOTAL$EDA1), c("0"=NA))
+table(MTITOTAL$EDA1)
+
+MTITOTAL$EDA1<-revalue(factor(MTITOTAL$EDA1),c("1"="5-9 años","2"=" 10-13 años","3"="14-17 años"))
+gedad<-wtd.table(MTITOTAL$EDA1,weights = MTITOTAL$FAC_MTI)
+gedad
+#5-9 años  10-13 años  14-17 años 
+#3038301     1178713           0
 
