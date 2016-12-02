@@ -1,0 +1,416 @@
+install.packages("foreign")
+require(foreign)
+install.packages("questionr")
+require(questionr)
+install.packages("stargazer")
+require(stargazer)
+install.packages("nnet")
+require(nnet)
+install.packages("plyr")
+require(plyr)
+base<-data.frame(read.dbf("C://Users//ENEDINA//Documents//VIK//sdemt316//sdemt316.dbf"))
+
+#Poblacion objetivo
+base$ENT<-as.numeric(base$ENT)
+pob<-subset(base,base$ENT==15 & base$CLASE2==1,weights=base$FAC)
+
+##utilizando las variables 
+#INE7C~ EDA+SEX+CS_P13_1+POS_OCU+RAMA+DUR9C
+
+#convirtiendo a caracter
+pob$ING7C<-as.character(pob$ING7C)
+pob$POS_OCU<-as.character(pob$POS_OCU)
+pob$RAMA<-as.character(pob$RAMA)
+pob$DUR9C<-as.character(pob$DUR9C)
+
+#identificando las variables para recodificar y eliminar los no especificados
+
+table(pob$ING7C)
+#1    2    3    4    5    6    7 
+#859 2146 1728 1138  311  331 1130
+#eliminamos 7 y renombramos
+
+pob$ING7C <- revalue(factor(pob$ING7C), c("7"=NA))
+table(pob$ING7C)
+#1    2    3    4    5    6 
+#859 2146 1728 1138  311  331
+
+pob$ING7C<-revalue(factor(pob$ING7C),c("1"="1 sal.min.","2"="Mas de 1 hasta 2 sal.min.","3"="Mas de 2 hasta 3 sal.min.","4"="Mas de 3 hasta 5 sal.min.","5"="Mas de 5 sal.min.","6"="No recibe ingresos"))
+salmin<- wtd.table(pob$ING7C, weights = pob$FAC)
+salmin
+
+#1 sal.min.        Mas de 1 hasta 2 sal.min.      Mas de 2 hasta 3 sal.min. 
+# 946303                   2081734                   1726977 
+#Mas de 3 hasta 5 sal.min.         Mas de 5 sal.min.        No recibe ingresos 
+#            985826                    326813                    296209
+
+table(pob$EDA5C)
+#0    1    2    3    4 
+#30 1122 3877 2308  306 
+
+pob$EDA5C<- revalue(factor(pob$EDA5C), c("0"=NA))
+table(pob$EDA5C)
+#1    2    3    4 
+#1122 3877 2308  306 
+pob$EDA5C<-revalue(factor(pob$EDA5C),c("1"="15-24 años","2"="25-44 años","3"="45-64 años","4"="65 y más años"))
+edades<- wtd.table(pob$EDA5C, weights = pob$FAC)
+edades
+#15-24 años    25-44 años  45-64 años   65 y más años 
+#1057932       3542344       2188644        314459 
+
+table(pob$SEX)
+#1    2 
+#4685 2958
+pob$SEX<-revalue(factor(pob$SEX),c("1"="Hombres","2"="Mujeres"))
+genero<- wtd.table(pob$SEX, weights = pob$FAC)
+genero
+#Hombres Mujeres 
+#4371683 2760902
+
+table(pob$CS_P13_1)
+#00   01   02   03   04   05   06   07   08   09   99 
+#173    3 1534 2343 1470   18  486 1458  142   14    2
+
+pob$CS_P13_1<- revalue(factor(pob$CS_P13_1), c("99"=NA))
+table(pob$CS_P13_1)
+#00   01   02   03   04   05   06   07   08   09 
+#173    3 1534 2343 1470   18  486 1458  142   14
+
+pob$CS_P13_1<-revalue(factor(pob$CS_P13_1),c("00"="Ninguno","01"="Preescolar","02"="Primaria","03"="Secundaria","04"="Prepa o Bachiller","05"="Normal","06"="C.Tecnica","07"="Profesional","08"="Maestria","09"="Doctorado"))
+grado<- wtd.table(pob$CS_P13_1, weights = pob$FAC)
+grado
+#Ninguno        Preescolar          Primaria        Secundaria 
+#177135              1867           1484828           2244156 
+#Prepa o Bachiller            Normal         C.Tecnica       Profesional 
+#1517258             14992            358874           1219007 
+#Maestria         Doctorado 
+#105728              5213
+
+table(pob$POS_OCU)
+#1    2    3    4 
+#5539  240 1588  276
+
+pob$POS_OCU<-revalue(factor(pob$POS_OCU),c("1"="Trab. subordinado y remunerado","2"="Empleadores","3"="Trab. por cuenta propia","4"="Trab. sin pago"))
+ocu<- wtd.table(pob$POS_OCU, weights = pob$FAC)
+ocu
+#Trab. subordinado y remunerado                    Empleadores 
+#           5090244                                   225631 
+#Trab. por cuenta propia                 Trab. sin pago 
+#           1575030                           241680 
+
+table(pob$RAMA)
+#1    2    3    4    5    6    7 
+#651 1497 1529 3541   34  369   22
+
+pob$RAMA<- revalue(factor(pob$RAMA), c("7"=NA))
+table(pob$RAMA)
+#1    2    3    4    5    6 
+#651 1497 1529 3541   34  369
+
+pob$RAMA<-revalue(factor(pob$RAMA),c("1"="Construccion","2"="Ind. Manufacturera","3"="Comercio","4"="Servicios","5"="Otros","6"="Agropecuario"))
+sector<- wtd.table(pob$RAMA, weights = pob$FAC)
+sector
+#Construccion Ind. Manufacturera           Comercio          Servicios 
+#628160            1223335            1556044            3296173 
+#Otros       Agropecuario 
+#42567             361411 
+
+table(pob$DUR9C)
+#1    2    3    4    5    6    7    8    9 
+#146  321  510  517  356 3422 1195 1165   11
+
+pob$DUR9C<- revalue(factor(pob$DUR9C), c("1"=NA,"9"=NA))
+table(pob$DUR9C)
+#2    3    4    5    6    7    8 
+#321  510  517  356 3422 1195 1165
+
+pob$DUR9C<-revalue(factor(pob$DUR9C),c("2"="Menos de 15 hrs","3"="15-24 hrs","4"="25-34 hrs","5"="35-39 hrs","6"="40-48 hrs","7"="49-56 hrs","8"="Mas de 56 hrs"))
+hrslab<- wtd.table(pob$DUR9C, weights = pob$FAC)
+hrslab
+#Menos de 15 hrs       15-24 hrs       25-34 hrs       35-39 hrs       40-48 hrs 
+#320280          500208          507664          342425         2859317 
+#49-56 hrs   Mas de 56 hrs 
+#1228821         1226876 
+
+############### Modelo Logistico ######
+mod1<-multinom(ING7C~1,data = pob)
+# weights:  12 (5 variable)
+#initial  value 11669.729423 
+#iter  10 value 10333.174803
+#final  value 10332.854540 
+#converged
+
+summary(mod1)
+#Call:
+#  multinom(formula = ING7C ~ 1, data = pob)
+
+#Coefficients:
+#  (Intercept)
+#Mas de 1 hasta 2 sal.min.   0.9149472
+#Mas de 2 hasta 3 sal.min.   0.6983671
+#Mas de 3 hasta 5 sal.min.   0.2806851
+#Mas de 5 sal.min.          -1.0165154
+#No recibe ingresos         -0.9545391
+
+#Std. Errors:
+#  (Intercept)
+#Mas de 1 hasta 2 sal.min.  0.04036769
+#Mas de 2 hasta 3 sal.min.  0.04174024
+#Mas de 3 hasta 5 sal.min.  0.04519163
+#Mas de 5 sal.min.          0.06617367
+#No recibe ingresos         0.06469717
+
+#Residual Deviance: 20665.71 
+#AIC: 20675.71
+
+modfin<-multinom(ING7C~EDA5C+SEX+CS_P13_1+POS_OCU+RAMA+DUR9C, data = pob)
+# weights:  174 (140 variable)
+#initial  value 11361.546794 
+#iter  10 value 8644.738650
+#iter  20 value 8045.031746
+#iter  30 value 7757.294249
+#iter  40 value 7646.594672
+#iter  50 value 7585.330411
+#iter  60 value 7527.879308
+#iter  70 value 7506.860568
+#iter  80 value 7490.752403
+#iter  90 value 7479.528284
+#iter 100 value 7475.239836
+#final  value 7475.239836 
+#stopped after 100 iterations
+
+p<-summary(modfin, wald=T)
+print(p)
+#Call:
+#  multinom(formula = ING7C ~ EDA5C + SEX + CS_P13_1 + POS_OCU + 
+#             RAMA + DUR9C, data = pob)
+
+#Coefficients:
+#  (Intercept) EDA5C25-44 años EDA5C45-64 años
+#Mas de 1 hasta 2 sal.min.  -0.8535808       0.4814651      0.37275026
+#Mas de 2 hasta 3 sal.min.  -2.3966819       1.0508655      0.96931268
+#Mas de 3 hasta 5 sal.min.  -4.3206389       1.6667374      1.70947946
+#Mas de 5 sal.min.          -9.8711048       1.0613415      1.51808339
+#No recibe ingresos        -13.5640288       0.3168410      0.06588549
+#EDA5C65 y más años SEXMujeres CS_P13_1Preescolar
+#Mas de 1 hasta 2 sal.min.         0.05980038 -0.3919167          0.6994949
+#Mas de 2 hasta 3 sal.min.         0.49831843 -0.7424942         -5.1279433
+#Mas de 3 hasta 5 sal.min.         1.33537418 -0.9463265          3.1884095
+#Mas de 5 sal.min.                 1.87514880 -1.1745215         -1.7158495
+#No recibe ingresos                0.33008942 -1.7581938         -2.0770950
+#CS_P13_1Primaria CS_P13_1Secundaria
+#Mas de 1 hasta 2 sal.min.        0.1554409          0.1884904
+#Mas de 2 hasta 3 sal.min.        0.2759364          0.4980205
+#Mas de 3 hasta 5 sal.min.        0.9108709          1.3305327
+#Mas de 5 sal.min.                4.0858402          4.4739190
+#No recibe ingresos               0.5078730         -0.5501083
+#CS_P13_1Prepa o Bachiller CS_P13_1Normal CS_P13_1C.Tecnica
+#Mas de 1 hasta 2 sal.min.                 0.5885401       7.439216         0.7308292
+#Mas de 2 hasta 3 sal.min.                 1.2272340       8.108615         1.2583567
+#Mas de 3 hasta 5 sal.min.                 2.1876625       9.240604         2.8673071
+#Mas de 5 sal.min.                         5.6468937      14.439650         6.5031263
+#No recibe ingresos                       -0.6685572       1.955753         0.1069668
+#CS_P13_1Profesional CS_P13_1Maestria CS_P13_1Doctorado
+#Mas de 1 hasta 2 sal.min.           0.6825102       -0.2865277         -9.252985
+#Mas de 2 hasta 3 sal.min.           1.4897419        1.6850698          5.359497
+#Mas de 3 hasta 5 sal.min.           3.4908077        4.1472830          8.261004
+#Mas de 5 sal.min.                   8.2568290        9.9061148         14.104165
+#No recibe ingresos                 -0.6018731        3.8218844          1.979956
+#POS_OCUEmpleadores POS_OCUTrab. por cuenta propia
+#Mas de 1 hasta 2 sal.min.        -0.73376416                     -0.8743117
+#Mas de 2 hasta 3 sal.min.         0.09727161                     -0.7954839
+#Mas de 3 hasta 5 sal.min.         0.61249438                     -0.5577356
+#Mas de 5 sal.min.                 1.46815894                     -0.8623214
+#No recibe ingresos                3.48115173                      4.9015757
+#POS_OCUTrab. sin pago RAMAInd. Manufacturera RAMAComercio
+#Mas de 1 hasta 2 sal.min.             -3.348933             -0.3215113   -0.5632723
+#Mas de 2 hasta 3 sal.min.            -11.681697             -0.9885389   -1.4409187
+#Mas de 3 hasta 5 sal.min.             -2.704405             -1.0133579   -1.6623095
+#Mas de 5 sal.min.                      3.539713             -0.5671110   -1.3287337
+#No recibe ingresos                    26.519762              0.4712516   -0.8767460
+#RAMAServicios  RAMAOtros RAMAAgropecuario DUR9C15-24 hrs
+#Mas de 1 hasta 2 sal.min.    -0.3962359 -0.4066214        -1.107643      0.8550051
+#Mas de 2 hasta 3 sal.min.    -0.9242943 -0.9424815        -2.891536      1.4540058
+#Mas de 3 hasta 5 sal.min.    -0.5504333 -0.6792250        -3.338022      0.7324931
+#Mas de 5 sal.min.            -0.4799507 -0.5097150        -2.550522      1.6093772
+#No recibe ingresos            0.2636813  0.4320194         5.327712      3.3084232
+#DUR9C25-34 hrs DUR9C35-39 hrs DUR9C40-48 hrs
+#Mas de 1 hasta 2 sal.min.       1.735298       1.837459       2.785516
+#Mas de 2 hasta 3 sal.min.       2.198821       2.940404       3.818936
+#Mas de 3 hasta 5 sal.min.       2.171339       2.596093       3.439482
+#Mas de 5 sal.min.               1.771426       2.936234       3.609831
+#No recibe ingresos              3.342201       2.891865       4.354479
+#DUR9C49-56 hrs DUR9CMas de 56 hrs
+#Mas de 1 hasta 2 sal.min.       2.723107           2.578427
+#Mas de 2 hasta 3 sal.min.       4.131513           4.049905
+#Mas de 3 hasta 5 sal.min.       3.515672           3.531375
+#Mas de 5 sal.min.               4.208763           4.307590
+#No recibe ingresos              2.709284           2.132276
+
+#Std. Errors:
+#  (Intercept) EDA5C25-44 años EDA5C45-64 años
+#Mas de 1 hasta 2 sal.min.   0.3802035       0.1332833       0.1507398
+#Mas de 2 hasta 3 sal.min.   0.4933512       0.1461255       0.1644098
+#Mas de 3 hasta 5 sal.min.   0.6101574       0.1792585       0.1960042
+#Mas de 5 sal.min.           4.5477473       0.2632518       0.2802735
+#No recibe ingresos          5.1925429       1.4262649       1.3994503
+#EDA5C65 y más años SEXMujeres CS_P13_1Preescolar
+#Mas de 1 hasta 2 sal.min.          0.2403023  0.1051527           1.470942
+#Mas de 2 hasta 3 sal.min.          0.2825079  0.1126510          29.246442
+#Mas de 3 hasta 5 sal.min.          0.3319996  0.1234066           2.053298
+#Mas de 5 sal.min.                  0.4609108  0.1770794         120.522925
+#No recibe ingresos                 1.4448486  0.8967561          44.564534
+#CS_P13_1Primaria CS_P13_1Secundaria
+#Mas de 1 hasta 2 sal.min.        0.2395726          0.2464086
+#Mas de 2 hasta 3 sal.min.        0.2908361          0.2955671
+#Mas de 3 hasta 5 sal.min.        0.4487509          0.4507192
+#Mas de 5 sal.min.                4.4752805          4.4754588
+#No recibe ingresos               0.5976283          0.7588356
+#CS_P13_1Prepa o Bachiller CS_P13_1Normal CS_P13_1C.Tecnica
+#Mas de 1 hasta 2 sal.min.                 0.2652049     27.9797154         0.3164029
+#Mas de 2 hasta 3 sal.min.                 0.3118992     27.9819018         0.3612481
+#Mas de 3 hasta 5 sal.min.                 0.4627522     27.9848837         0.4945681
+#Mas de 5 sal.min.                         4.4770937     28.3387815         4.4834998
+#No recibe ingresos                        2.3028292      0.0563505         5.5567292
+#CS_P13_1Profesional CS_P13_1Maestria CS_P13_1Doctorado
+#Mas de 1 hasta 2 sal.min.           0.2865629        0.9320291        0.02228560
+#Mas de 2 hasta 3 sal.min.           0.3304620        0.8487332       21.40777690
+#Mas de 3 hasta 5 sal.min.           0.4713191        0.8829992       21.39152401
+#Mas de 5 sal.min.                   4.4753929        4.5384849       21.84803284
+#No recibe ingresos                  2.6536930        5.4459594        0.04982686
+#POS_OCUEmpleadores POS_OCUTrab. por cuenta propia
+#Mas de 1 hasta 2 sal.min.          0.3301961                      0.1153592
+#Mas de 2 hasta 3 sal.min.          0.3218545                      0.1256232
+#Mas de 3 hasta 5 sal.min.          0.3324326                      0.1378934
+#Mas de 5 sal.min.                  0.3730907                      0.2249874
+#No recibe ingresos                 1.6228038                      1.3866807
+#POS_OCUTrab. sin pago RAMAInd. Manufacturera RAMAComercio
+#Mas de 1 hasta 2 sal.min.          4.442786e+00              0.2490974    0.2435196
+#Mas de 2 hasta 3 sal.min.          6.313573e-04              0.2500738    0.2463161
+#Mas de 3 hasta 5 sal.min.          2.588354e+00              0.2696126    0.2705524
+#Mas de 5 sal.min.                  4.369369e+01              0.3812612    0.3909990
+#No recibe ingresos                 4.027419e+01              4.3657932    4.4211890
+#RAMAServicios  RAMAOtros RAMAAgropecuario DUR9C15-24 hrs
+#Mas de 1 hasta 2 sal.min.     0.2348341   1.109078        0.2682182      0.2082910
+#Mas de 2 hasta 3 sal.min.     0.2346382   1.110115        0.3239177      0.3576782
+#Mas de 3 hasta 5 sal.min.     0.2508510   1.141188        0.4640435      0.3865586
+#Mas de 5 sal.min.             0.3578621   1.331780        0.7488200      0.8232290
+#No recibe ingresos            4.1151366 109.557860        3.7513536      3.0755167
+#DUR9C25-34 hrs DUR9C35-39 hrs DUR9C40-48 hrs
+#Mas de 1 hasta 2 sal.min.      0.2177735      0.2444174      0.1940020
+#Mas de 2 hasta 3 sal.min.      0.3603733      0.3729941      0.3326589
+#Mas de 3 hasta 5 sal.min.      0.3590122      0.3857220      0.3341795
+#Mas de 5 sal.min.              0.8142031      0.8296840      0.7642919
+#No recibe ingresos             3.0793809      3.0829944      3.0812798
+#DUR9C49-56 hrs DUR9CMas de 56 hrs
+#Mas de 1 hasta 2 sal.min.      0.2301848          0.2213621
+#Mas de 2 hasta 3 sal.min.      0.3541626          0.3480921
+#Mas de 3 hasta 5 sal.min.      0.3596571          0.3524376
+#Mas de 5 sal.min.              0.7796580          0.7773793
+#No recibe ingresos             3.2152516          3.9640595
+
+#Residual Deviance: 14950.48 
+#AIC: 15230.48
+
+####Exportacion del modelo #########
+#sin exponencial
+a<- stargazer(modfin, type = "text", title = "coeficientes", summary = T)
+
+#coeficientes
+#=================================================================================================================================================
+#  Dependent variable:                                                
+#  ------------------------------------------------------------------------------------------------------------------
+ # Mas de 1 hasta 2 sal.min. Mas de 2 hasta 3 sal.min. Mas de 3 hasta 5 sal.min. Mas de 5 sal.min. No recibe ingresos
+#(1)                       (2)                       (3)                   (4)               (5)        
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+#  EDA5C25-44 años                        0.481***                  1.051***                  1.667***              1.061***            0.317       
+#(0.133)                   (0.146)                   (0.179)               (0.263)           (1.426)      
+
+#EDA5C45-64 años                         0.373**                  0.969***                  1.709***              1.518***            0.066       
+#(0.151)                   (0.164)                   (0.196)               (0.280)           (1.399)      
+
+#EDA5C65 y más años                       0.060                    0.498*                   1.335***              1.875***            0.330       
+#(0.240)                   (0.283)                   (0.332)               (0.461)           (1.445)      
+
+#SEXMujeres                             -0.392***                 -0.742***                 -0.946***             -1.175***          -1.758**     
+#  (0.105)                   (0.113)                   (0.123)               (0.177)           (0.897)      
+
+#CS_P13_1Preescolar                       0.699                    -5.128                     3.188                -1.716             -2.077      
+#(1.471)                  (29.246)                   (2.053)              (120.523)          (44.565)     
+
+#CS_P13_1Primaria                         0.155                     0.276                    0.911**                4.086             0.508       
+#(0.240)                   (0.291)                   (0.449)               (4.475)           (0.598)      
+
+#CS_P13_1Secundaria                       0.188                    0.498*                   1.331***                4.474             -0.550      
+#(0.246)                   (0.296)                   (0.451)               (4.475)           (0.759)      
+
+#CS_P13_1Prepa o Bachiller               0.589**                  1.227***                  2.188***                5.647             -0.669      
+#(0.265)                   (0.312)                   (0.463)               (4.477)           (2.303)      
+
+#CS_P13_1Normal                           7.439                     8.109                     9.241                14.440            1.956***     
+#  (27.980)                  (27.982)                  (27.985)              (28.339)           (0.056)      
+
+#CS_P13_1C.Tecnica                       0.731**                  1.258***                  2.867***                6.503             0.107       
+#(0.316)                   (0.361)                   (0.495)               (4.483)           (5.557)      
+
+#CS_P13_1Profesional                     0.683**                  1.490***                  3.491***               8.257*             -0.602      
+#(0.287)                   (0.330)                   (0.471)               (4.475)           (2.654)      
+
+#CS_P13_1Maestria                        -0.287                    1.685**                  4.147***               9.906**            3.822       
+#(0.932)                   (0.849)                   (0.883)               (4.538)           (5.446)      
+
+#CS_P13_1Doctorado                      -9.253***                   5.359                     8.261                14.104            1.980***     
+#  (0.022)                  (21.408)                  (21.392)              (21.848)           (0.050)      
+
+#POS_OCUEmpleadores                     -0.734**                    0.097                    0.612*               1.468***           3.481**      
+#  (0.330)                   (0.322)                   (0.332)               (0.373)           (1.623)      
+
+#POS_OCUTrab. por cuenta propia         -0.874***                 -0.795***                 -0.558***             -0.862***          4.902***     
+#  (0.115)                   (0.126)                   (0.138)               (0.225)           (1.387)      
+
+#POS_OCUTrab. sin pago                   -3.349                  -11.682***                  -2.704                 3.540             26.520      
+#(4.443)                   (0.001)                   (2.588)              (43.694)           (40.274)     
+
+#RAMAInd. Manufacturera                  -0.322                   -0.989***                 -1.013***              -0.567             0.471       
+#(0.249)                   (0.250)                   (0.270)               (0.381)           (4.366)      
+
+#RAMAComercio                           -0.563**                  -1.441***                 -1.662***             -1.329***           -0.877      
+#(0.244)                   (0.246)                   (0.271)               (0.391)           (4.421)      
+
+#RAMAServicios                           -0.396*                  -0.924***                 -0.550**               -0.480             0.264       
+#(0.235)                   (0.235)                   (0.251)               (0.358)           (4.115)      
+
+#RAMAOtros                               -0.407                    -0.942                    -0.679                -0.510             0.432       
+#(1.109)                   (1.110)                   (1.141)               (1.332)          (109.558)     
+
+#RAMAAgropecuario                       -1.108***                 -2.892***                 -3.338***             -2.551***           5.328       
+#(0.268)                   (0.324)                   (0.464)               (0.749)           (3.751)      
+
+#DUR9C15-24 hrs                         0.855***                  1.454***                   0.732*                1.609*             3.308       
+#(0.208)                   (0.358)                   (0.387)               (0.823)           (3.076)      
+
+#DUR9C25-34 hrs                         1.735***                  2.199***                  2.171***               1.771**            3.342       
+#(0.218)                   (0.360)                   (0.359)               (0.814)           (3.079)      
+
+#DUR9C35-39 hrs                         1.837***                  2.940***                  2.596***              2.936***            2.892       
+#(0.244)                   (0.373)                   (0.386)               (0.830)           (3.083)      
+
+#DUR9C40-48 hrs                         2.786***                  3.819***                  3.439***              3.610***            4.354       
+#(0.194)                   (0.333)                   (0.334)               (0.764)           (3.081)      
+
+#DUR9C49-56 hrs                         2.723***                  4.132***                  3.516***              4.209***            2.709       
+#(0.230)                   (0.354)                   (0.360)               (0.780)           (3.215)      
+
+#DUR9CMas de 56 hrs                     2.578***                  4.050***                  3.531***              4.308***            2.132       
+#(0.221)                   (0.348)                   (0.352)               (0.777)           (3.964)      
+
+#Constant                               -0.854**                  -2.397***                 -4.321***             -9.871**          -13.564***    
+#  (0.380)                   (0.493)                   (0.610)               (4.548)           (5.193)      
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+#  Akaike Inf. Crit.                     15,230.480                15,230.480                15,230.480            15,230.480         15,230.480    
+#=================================================================================================================================================
+#  Note:                                                                                                                 *p<0.1; **p<0.05; ***p<0.01
+
+#sin exponencial y exportado
+stargazer(modfin, type = "text",title = "Modelo de Regresion Logistica Ingreso-Grado de Estudios", digits = 2, out = "C:\\Users\\ENEDINA\\Documents\\VIK\\sdemt316\\Logistica.txt")
